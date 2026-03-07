@@ -2,9 +2,14 @@ from rest_framework import serializers
 from django.contrib.auth import get_user_model
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
+    # We add these to make them required and clear
+    email = serializers.EmailField(required=True)
+    first_name = serializers.CharField(required=True)
+    last_name = serializers.CharField(required=True)
     class Meta:
         model = get_user_model()
-        fields = ['username', 'password']
+       # We add 'id' here so the frontend can 'read' it after registration
+        fields = ['id', 'username', 'password', 'email', 'first_name', 'last_name']
         extra_kwargs = {
             'password': {'write_only': True}
         }
@@ -13,6 +18,9 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         # We use create_user because it automatically handles password hashing
         user = get_user_model().objects.create_user(
             username=validated_data['username'],
-            password=validated_data['password']
+            password=validated_data['password'],
+            email=validated_data['email'],
+            first_name=validated_data['first_name'],
+            last_name=validated_data['last_name']
         )
         return user
