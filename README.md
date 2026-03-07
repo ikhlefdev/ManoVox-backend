@@ -24,6 +24,8 @@ This is the Django-based backend for the ManoVox communication app.
 - **Body:**
   ```json
   {
+    "first_name":"example_first_name",
+    "last_name":"example_last_name",
     "username": "example_user",
     "password": "yourpassword123",
     "email": "user@mail.com"
