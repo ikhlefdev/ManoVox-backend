@@ -23,10 +23,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-80p326z%8y@uv8073d^=ibn$y9u!9(y(2=h)&+6x-m7@cq3h6)'
+# We pull this from .env to keep it off GitHub.
+SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# os.getenv returns a string, so we compare it to 'True' to get a Boolean (True/False).
+DEBUG = os.getenv('DEBUG') == 'True'
 
 ALLOWED_HOSTS = ['*']
 
@@ -153,3 +155,9 @@ DJOSER = {
     'SEND_ACTIVATION_EMAIL': False,
     'SEND_CONFIRMATION_EMAIL': False,
 }
+
+# For development, allow all origins (React, Mobile, etc.)
+CORS_ALLOW_ALL_ORIGINS = True 
+
+# If you want to be specific later:
+# CORS_ALLOWED_ORIGINS = ["http://localhost:3000"]
