@@ -20,4 +20,7 @@ from django.urls import path, include
 urlpatterns = [
     path('admin/', admin.site.urls),
     path("",include('accounts.urls')),
+    
+    path('auth/', include('djoser.urls')),           # Djoser: Forgot Password, Reset Password, Register
+    path('auth/', include('djoser.urls.authtoken')), # Djoser: Login (get token) and Logout (destroy token)
 ]
