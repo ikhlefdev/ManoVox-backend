@@ -2,7 +2,8 @@ from django.contrib.auth.models import User
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from .serializers import UserRegistrationSerializer
+from .serializers import UserRegistrationSerializer , SignWordSerializer
+from .models import SignWord
 
 # --- REGISTRATION ---
 class UserRegistrationView(generics.CreateAPIView):
@@ -46,3 +47,21 @@ class UserDeleteView(generics.DestroyAPIView):
             {"message": "Account deleted successfully!"}, 
             status=status.HTTP_200_OK
         )
+class SignDictionaryView(generics.ListAPIView):
+    serializer_class = SignWordSerializer
+
+    def get_queryset(self):
+        queryset = SignWord.objects.all()
+        # This catches the word the user types in the search bar
+        word = self.request.query_params.get('search')
+        category = self.request.query_params.get('category')
+        # Apply search if provided
+        if word:
+            queryset = queryset.filter(word__icontains=word)
+            
+        # Apply category if provided
+        if category:
+            # Using '__iexact' so 'food' matches 'Food'
+            queryset = queryset.filter(category__iexact=category)
+            
+        return queryset

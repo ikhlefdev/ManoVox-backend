@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
+from .models import SignWord
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     # We add these to make them required and clear
@@ -24,3 +25,8 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             last_name=validated_data['last_name']
         )
         return user
+class SignWordSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SignWord
+        fields = ['word', 'category','video_url', 'needs_ssl_bypass']
+    

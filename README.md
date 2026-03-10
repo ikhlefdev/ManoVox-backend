@@ -30,7 +30,7 @@ This is the Django-based backend for the ManoVox communication app.
     "password": "yourpassword123",
     "email": "user@mail.com"
   }
-### 1. Delete account
+### 2. Delete account
 - **URL:** `/accounts/delete_account/`
 - **Method:** `DELETE`
 - **Description:** deletes a user from the database
