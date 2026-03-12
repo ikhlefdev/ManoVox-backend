@@ -32,7 +32,8 @@ This is the Django-based backend for the ManoVox communication app.
     "last_name":"example_last_name",
     "username": "example_user",
     "password": "yourpassword123",
-    "email": "user@mail.com"
+    "email": "user@mail.com",
+    "age": "example_age"
   }
 ### 2. Delete account
 - **URL:** `/accounts/delete_account/`
@@ -47,7 +48,7 @@ This is the Django-based backend for the ManoVox communication app.
 - **Body:**
   ```json
   {
-    "username": "example_user",
+    "email": "example_user",
     "password": "yourpassword123"
   }
 
