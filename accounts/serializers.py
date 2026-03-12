@@ -1,32 +1,22 @@
-from rest_framework import serializers
+from rest_framework import serializers  # <--- THIS IS THE MISSING LINE
+from djoser.serializers import UserCreateSerializer as BaseUserCreateSerializer
 from django.contrib.auth import get_user_model
-from .models import SignWord
+from .models import SignWord, User # Make sure User is imported here too!
 
-class UserRegistrationSerializer(serializers.ModelSerializer):
-    # We add these to make them required and clear
-    email = serializers.EmailField(required=True)
-    first_name = serializers.CharField(required=True)
-    last_name = serializers.CharField(required=True)
-    class Meta:
-        model = get_user_model()
-       # We add 'id' here so the frontend can 'read' it after registration
-        fields = ['id', 'username', 'password', 'email', 'first_name', 'last_name']
-        extra_kwargs = {
-            'password': {'write_only': True}
-        }
+User = get_user_model()
+
+# We "Extend" Djoser's existing serializer
+class UserRegistrationSerializer(BaseUserCreateSerializer):
+    class Meta(BaseUserCreateSerializer.Meta):
+        model = User
+        # We combine Djoser's fields with your specific ones
+        fields = ('id', 'username', 'email', 'password', 'first_name', 'last_name','age')
 
     def create(self, validated_data):
-        # We use create_user because it automatically handles password hashing
-        user = get_user_model().objects.create_user(
-            username=validated_data['username'],
-            password=validated_data['password'],
-            email=validated_data['email'],
-            first_name=validated_data['first_name'],
-            last_name=validated_data['last_name']
-        )
-        return user
+        # This ensures passwords are encrypted properly in the database
+        return User.objects.create_user(**validated_data)
+
 class SignWordSerializer(serializers.ModelSerializer):
     class Meta:
         model = SignWord
-        fields = ['word', 'category','video_url', 'needs_ssl_bypass']
-    
+        fields = ['word', 'category', 'video_url', 'needs_ssl_bypass']

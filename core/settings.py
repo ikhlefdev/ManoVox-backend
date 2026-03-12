@@ -30,7 +30,7 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 # os.getenv returns a string, so we compare it to 'True' to get a Boolean (True/False).
 DEBUG = os.getenv('DEBUG') == 'True'
 
-ALLOWED_HOSTS = ['*']
+
 
 
 # Application definition
@@ -137,27 +137,43 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication', # Adds Browser support
     )
 }
-CORS_ALLOW_ALL_ORIGINS = True 
+
 
 # Real Email Configuration (Gmail SMTP)
 # SMTP Email Backend for Djoser (Password Reset, Activation, etc.)
 # IMPORTANT: Never hardcode passwords here. Always use the .env file!
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.getenv('EMAIL_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_PASS')
-
+AUTH_USER_MODEL = 'accounts.User'
 # Djoser settings for password reset
 DJOSER = {
+    'SEND_CONFIRMATION_EMAIL': False,
+    'LOGIN_FIELD': 'email',  # Makes email the primary login field
+    'USER_CREATE_PASSWORD_RETYPE': True, # Forces users to type password twice
     'PASSWORD_RESET_CONFIRM_URL': 'password/reset/confirm/{uid}/{token}',
     'SEND_ACTIVATION_EMAIL': False,
-    'SEND_CONFIRMATION_EMAIL': False,
+    'SERIALIZERS': {
+        'user_create': 'accounts.serializers.UserRegistrationSerializer',
+        'user': 'accounts.serializers.UserRegistrationSerializer',
+        'current_user': 'accounts.serializers.UserRegistrationSerializer',
+    },
 }
 
 # For development, allow all origins (React, Mobile, etc.)
-CORS_ALLOW_ALL_ORIGINS = True 
+
+# 1. Allow the ngrok domain to send requests
+CSRF_TRUSTED_ORIGINS = [
+    'https://tonda-interapophyseal-shelteringly.ngrok-free.dev',
+]
+
+# 2. Since this is an API for a mobile app, we also need to relax these
+CORS_ALLOW_ALL_ORIGINS = True
+ALLOWED_HOSTS = ['*']
 
 # If you want to be specific later:
 # CORS_ALLOWED_ORIGINS = ["http://localhost:3000"]

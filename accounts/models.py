@@ -1,8 +1,12 @@
 from django.db import models
+from django.contrib.auth.models import AbstractUser
 
+class User(AbstractUser):
+    email = models.EmailField(unique=True)
+    age = models.PositiveIntegerField(null=True, blank=True)
 
-
-# Create your models here.
+    USERNAME_FIELD = 'email'  # This MUST be here if Djoser uses email to login
+    REQUIRED_FIELDS = ['username', 'first_name', 'last_name', 'age']
 
 
 class SignWord(models.Model):
