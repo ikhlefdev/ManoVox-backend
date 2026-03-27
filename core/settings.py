@@ -177,3 +177,10 @@ ALLOWED_HOSTS = ['*']
 
 # If you want to be specific later:
 # CORS_ALLOWED_ORIGINS = ["http://localhost:3000"]
+
+# MEDIA CONFIGURATION
+# 1. The URL the browser will use to ask for the file (e.g., your-site.com/media/...)
+MEDIA_URL = '/media/'
+
+# 2. The exact folder on your computer where Django should look for those files
+MEDIA_ROOT = BASE_DIR / 'media'
