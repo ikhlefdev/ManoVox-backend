@@ -2,6 +2,7 @@ from rest_framework import serializers  # <--- THIS IS THE MISSING LINE
 from djoser.serializers import UserCreateSerializer as BaseUserCreateSerializer
 from django.contrib.auth import get_user_model
 from .models import SignWord, User # Make sure User is imported here too!
+from .models import ASLLetter
 
 User = get_user_model()
 
@@ -20,3 +21,11 @@ class SignWordSerializer(serializers.ModelSerializer):
     class Meta:
         model = SignWord
         fields = ['word', 'category', 'video_url', 'needs_ssl_bypass']
+        
+        
+# This translates our ASLLetter database model into JSON data 
+# so the frontend (React/Flutter/etc.) can actually read it.
+class ASLLetterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ASLLetter # The database table we are pulling from
+        fields = ['id', 'letter', 'image', 'video'] # The exact columns we want to send to the app

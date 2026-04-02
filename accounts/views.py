@@ -2,8 +2,9 @@ from django.contrib.auth import get_user_model
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from .serializers import UserRegistrationSerializer , SignWordSerializer
-from .models import SignWord
+from .serializers import UserRegistrationSerializer , SignWordSerializer , ASLLetterSerializer
+from .models import SignWord , ASLLetter
+
 User = get_user_model()
 
 # --- REGISTRATION ---
@@ -66,3 +67,11 @@ class SignDictionaryView(generics.ListAPIView):
             queryset = queryset.filter(category__iexact=category)
             
         return queryset
+    
+# This view handles the logic for sending a list of all ASL letters to the frontend.
+class ASLLetterListView(generics.ListAPIView):
+    # 1. Grab all the letters from the database and sort them alphabetically (A-Z)
+    queryset = ASLLetter.objects.all().order_by('letter')
+    
+    # 2. Pass those letters through our translator so they become JSON
+    serializer_class = ASLLetterSerializer

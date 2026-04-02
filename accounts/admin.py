@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import User, SignWord
+from .models import User, SignWord, ASLLetter
 
 # 1. Setup Custom User Admin to handle the new 'age' field
 class CustomUserAdmin(UserAdmin):
@@ -23,3 +23,4 @@ class SignWordAdmin(admin.ModelAdmin):
 # 3. Register everything at the bottom (cleanest way)
 admin.site.register(User, CustomUserAdmin)
 admin.site.register(SignWord, SignWordAdmin)
+admin.site.register(ASLLetter)
