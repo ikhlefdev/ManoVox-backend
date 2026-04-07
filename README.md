@@ -6,6 +6,8 @@ This is the Django-based backend for the ManoVox communication app.
 ## Tech Stack
 - **Framework:** Django 6.0.3
 - **API:** Django REST Framework
+- **Database:** Neon PostgreSQL (Cloud Shared Database)
+- **Media Storage:** Cloudinary (Cloud Video & Image Hosting)
 - **Auth:** Djoser & Token Authentication (DRF tokens)
 - **Email:** Gmail SMTP Integration
 
@@ -13,7 +15,8 @@ This is the Django-based backend for the ManoVox communication app.
 - **User Registration:** Secure account creation via `POST`.
 - **Account Deletion:** Self-service account removal via `DELETE`.
 - **CORS configuration:** Configured for mobile/Flutter integration.
-- **SQL Database:** Integrated user management system.
+- **Cloud Database (Neon PostgreSQL):** Integrated, shared remote database for real-time syncing.
+- **Cloud Media (Cloudinary):** Seamless cloud hosting for scalable image and video serving.
 - **User Authentication:** Complete registration, login, and logout flow using Djoser.
 - **Password Recovery:** Automated "Forgot Password" system via Gmail SMTP.
 - **Security:** Sensitive keys and credentials managed via `.env` variables.
@@ -81,3 +84,16 @@ This is the Django-based backend for the ManoVox communication app.
 - **Description:** deletes the token on the server side to end the session
 - **Headers:** - `Authorization`: `Token <your_token_string>`
 - **Security:** Requires Token authentication.
+
+### 7. Get ASL Sign Dictionary
+- **URL:** `/accounts/sign_dictionary/`
+- **Method:** `GET`
+- **Description:** Retrieves a list of ASL sign words. Supports searching and category filtering via query parameters.
+- **Query Parameters:** 
+  - `?search=<word>` (optional)
+  - `?category=<category>` (optional)
+
+### 8. Get ASL Letters
+- **URL:** `/accounts/asl-letters/`
+- **Method:** `GET`
+- **Description:** Retrieves all letters of the ASL alphabet along with their corresponding cloud-hosted image and video URLs.
