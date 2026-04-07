@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/6.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
+import dj_database_url
 import os
 from dotenv import load_dotenv
 
@@ -41,8 +42,10 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.staticfiles',
+    'cloudinary_storage',
+    'cloudinary',
     'rest_framework',
+    'django.contrib.staticfiles',
     'rest_framework_simplejwt',
     'accounts',
     'corsheaders',
@@ -85,11 +88,19 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
+# ==========================================
+# CLOUD DATABASE SETUP (NEON POSTGRESQL)
+# ==========================================
+# We are using Neon (PostgreSQL) instead of the default local db.sqlite3 file.
+# This ensures that all developers on the team are reading and writing to the 
+# exact same shared database in the cloud, rather than separate local files.
+# The 'dj_database_url' package securely translates the Neon connection string.
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        conn_max_age=0,
+        conn_health_checks=True,
+    )
 }
 
 
@@ -184,3 +195,20 @@ MEDIA_URL = '/media/'
 
 # 2. The exact folder on your computer where Django should look for those files
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# Cloudinary Credentials
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': os.getenv('CLOUDINARY_CLOUD_NAME'),
+    'API_KEY': os.getenv('CLOUDINARY_API_KEY'),
+    'API_SECRET': os.getenv('CLOUDINARY_API_SECRET'),
+}
+
+# Tell Django to route media to Cloudinary
+STORAGES = {
+    "default": {
+        "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}

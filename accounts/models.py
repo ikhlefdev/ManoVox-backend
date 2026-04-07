@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from cloudinary_storage.storage import VideoMediaCloudinaryStorage
 
 class User(AbstractUser):
     email = models.EmailField(unique=True)
@@ -23,7 +24,7 @@ class SignWord(models.Model):
 class ASLLetter(models.Model):
     letter = models.CharField(max_length=1, unique=True)
     image = models.ImageField(upload_to='asl_images/', null=True, blank=True)
-    video = models.FileField(upload_to='asl_videos/', null=True, blank=True)
+    video = models.FileField(upload_to='asl_videos/', null=True, blank=True, storage=VideoMediaCloudinaryStorage())
 
     def __str__(self):
         return f"Letter: {self.letter.upper()}"
