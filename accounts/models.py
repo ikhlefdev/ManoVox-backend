@@ -5,9 +5,12 @@ from cloudinary_storage.storage import VideoMediaCloudinaryStorage
 class User(AbstractUser):
     email = models.EmailField(unique=True)
     age = models.PositiveIntegerField(null=True, blank=True)
+    role = models.CharField(max_length=20, choices=[('user', 'User'), ('admin', 'Administration')], default='user')
+    organization_name = models.CharField(max_length=255, null=True, blank=True)
+    phone_number = models.CharField(max_length=20, null=True, blank=True)
 
     USERNAME_FIELD = 'email'  # This MUST be here if Djoser uses email to login
-    REQUIRED_FIELDS = ['username', 'first_name', 'last_name', 'age']
+    REQUIRED_FIELDS = ['username', 'first_name', 'last_name', 'age', 'role']
 
 
 class SignWord(models.Model):

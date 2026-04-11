@@ -20,6 +20,7 @@ This is the Django-based backend for the ManoVox communication app.
 - **User Authentication:** Complete registration, login, and logout flow using Djoser.
 - **Password Recovery:** Automated "Forgot Password" system via Gmail SMTP.
 - **Security:** Sensitive keys and credentials managed via `.env` variables.
+- **Deaf Hub:** Event feed allowing specific administration accounts to create, manage, and share events with regular users.
 
 
 ## 🛠 API Documentation (Accounts)
@@ -97,3 +98,19 @@ This is the Django-based backend for the ManoVox communication app.
 - **URL:** `/accounts/asl-letters/`
 - **Method:** `GET`
 - **Description:** Retrieves all letters of the ASL alphabet along with their corresponding cloud-hosted image and video URLs.
+
+---
+
+## 📅 API Documentation (Deaf Hub)
+
+### 1. Fetch Deaf Hub Event Feed
+- **URL:** `/api/deaf-hub/events/`
+- **Method:** `GET`
+- **Description:** Returns an array of Event objects.
+
+### 2. Create a New Event
+- **URL:** `/api/deaf-hub/events/`
+- **Method:** `POST`
+- **Headers:** `Authorization: Token <your_token_string>`
+- **Description:** Creates a new event. The user MUST be registered with `"role": "admin"`.
+- **Payload fields:** `title`, `description`, `date`, `location`, `image` (optional), `video` (optional).
