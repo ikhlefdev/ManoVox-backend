@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     #I added those two installed apps so Django can use them --- For user authentication (login, registration, forgot password), the fastest way to deliver is using a library called Djoser. It provides all the REST API endpoints you need out of the box.
     'rest_framework.authtoken',
     'djoser',
+    'deaf_hub',
 ]
 
 MIDDLEWARE = [

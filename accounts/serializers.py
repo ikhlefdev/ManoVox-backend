@@ -11,7 +11,7 @@ class UserRegistrationSerializer(BaseUserCreateSerializer):
     class Meta(BaseUserCreateSerializer.Meta):
         model = User
         # We combine Djoser's fields with your specific ones
-        fields = ('id', 'username', 'email', 'password', 'first_name', 'last_name','age')
+        fields = ('id', 'username', 'email', 'password', 'first_name', 'last_name', 'age', 'role', 'organization_name', 'phone_number')
 
     def create(self, validated_data):
         # This ensures passwords are encrypted properly in the database

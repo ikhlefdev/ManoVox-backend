@@ -25,6 +25,7 @@ urlpatterns = [
     
     path('auth/', include('djoser.urls')),           # Djoser: Forgot Password, Reset Password, Register
     path('auth/', include('djoser.urls.authtoken')), # Djoser: Login (get token) and Logout (destroy token)
+    path('api/deaf-hub/', include('deaf_hub.urls')),
 ]
 
 # This tells Django: "While we are building the app (DEBUG mode), please serve the media files!"
