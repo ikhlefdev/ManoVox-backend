@@ -1,5 +1,8 @@
+import random
+
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.contrib.auth import get_user_model
 from cloudinary_storage.storage import VideoMediaCloudinaryStorage
 
 class User(AbstractUser):
@@ -32,3 +35,22 @@ class ASLLetter(models.Model):
     def __str__(self):
         return f"Letter: {self.letter.upper()}"
     
+    
+User = get_user_model()
+
+class PasswordResetCode(models.Model):
+    # This creates a relationship. If a User is deleted, their reset codes are also deleted automatically (CASCADE).
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    
+    # The actual 6-digit code. We save it as a string (CharField) because passwords/codes shouldn't be treated as math numbers.
+    code = models.CharField(max_length=6)
+    
+    # Automatically records the exact time this code was generated. You could use this later to make codes "expire" after 15 minutes
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def generate_code(self):
+        # Pick a random number between 100,000 and 999,999. Convert it into a string. Then assign it to this record's 'code' field.
+        self.code = str(random.randint(100000, 999999))
+        
+        # Save this new code into the PostgreSQL database.
+        self.save()

@@ -56,37 +56,40 @@ This is the Django-based backend for the ManoVox communication app.
     "password": "yourpassword123"
   }
 
-### 4. Request Password Reset
-- **URL:** `/auth/users/reset_password/`
+### 4. Password Reset Flow
+
+**Step 1: Request Reset Code**
+- **URL:** `/api/custom-reset/send-code/`
 - **Method:** `POST`
-- **Description:** Sends a password reset link to the user's registered email.
+- **Description:** Generates a 6-digit OTP (One-Time Password) and sends it to the user's registered email in an HTML template.
 - **Body:**
   ```json
   {
     "email": "user@mail.com"
   }
+  ```
 
-### 5. Confirm password
-- **URL:** `/auth/users/reset_password_confirm/`
+**Step 2: Verify Code and Reset Password**
+- **URL:** `/api/custom-reset/verify-code/`
 - **Method:** `POST`
-- **Description:** completes the password change using the uid and token from the email
+- **Description:** Verifies the 6-digit code provided by the user. If valid, it updates the user's password and invalidates the code so it cannot be reused.
 - **Body:**
   ```json
   {
-    "uid": "encoded_user_id",
-    "token": "reset_token",
-    "new_password": "newpassword123",
-    "re_new_password": "newpassword123"
+    "email": "user@mail.com",
+    "code": "123456",
+    "new_password": "NewSecurePassword123!"
   }
+  ```
 
-### 6. Log out
+### 5. Log out
 - **URL:** `/auth/token/logout/`
 - **Method:** `POST`
 - **Description:** deletes the token on the server side to end the session
 - **Headers:** - `Authorization`: `Token <your_token_string>`
 - **Security:** Requires Token authentication.
 
-### 7. Get ASL Sign Dictionary
+### 6. Get ASL Sign Dictionary
 - **URL:** `/accounts/sign_dictionary/`
 - **Method:** `GET`
 - **Description:** Retrieves a list of ASL sign words. Supports searching and category filtering via query parameters.
@@ -94,7 +97,7 @@ This is the Django-based backend for the ManoVox communication app.
   - `?search=<word>` (optional)
   - `?category=<category>` (optional)
 
-### 8. Get ASL Letters
+### 7. Get ASL Letters
 - **URL:** `/accounts/asl-letters/`
 - **Method:** `GET`
 - **Description:** Retrieves all letters of the ASL alphabet along with their corresponding cloud-hosted image and video URLs.
