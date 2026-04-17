@@ -1,9 +1,13 @@
+from django.template.loader import render_to_string
 from django.contrib.auth import get_user_model
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from .serializers import UserRegistrationSerializer , SignWordSerializer , ASLLetterSerializer
-from .models import SignWord , ASLLetter
+from .models import SignWord , ASLLetter , PasswordResetCode
+from rest_framework.decorators import api_view
+from django.core.mail import send_mail
+from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
@@ -75,3 +79,58 @@ class ASLLetterListView(generics.ListAPIView):
     
     # 2. Pass those letters through our translator so they become JSON
     serializer_class = ASLLetterSerializer
+    
+    
+@api_view(['POST'])
+def send_reset_code(request):
+    """Generates a 6-digit code and emails it to the user."""
+    email = request.data.get('email')
+    
+    try:
+        # Search the database for a user matching this email
+        user = User.objects.get(email=email)
+        
+        reset_record = PasswordResetCode.objects.create(user=user)
+        reset_record.generate_code()
+        
+        # 1. Grab the HTML file and inject the code into it
+        html_content = render_to_string('email/otp_email.html', {'code': reset_record.code})
+        
+        # 2. Send the email with the new 'html_message' parameter
+        send_mail(
+            subject="Your ManoVox Password Reset Code",
+            message=f"Your password reset code is: {reset_record.code}",
+            from_email=None,
+            recipient_list=[email],
+            html_message=html_content
+        )
+        return Response({"message": "Code sent successfully!"}, status=200)
+        
+    except User.DoesNotExist:
+        # Generic response to prevent email enumeration attacks
+        return Response({"message": "If that email exists, a code was sent."}, status=200)
+
+
+@api_view(['POST'])
+def verify_and_reset_password(request):
+    """Verifies the 6-digit code and updates the password."""
+    # Extract the three pieces of data we need from the JSON body
+    email = request.data.get('email')
+    code = request.data.get('code')
+    new_password = request.data.get('new_password')
+    
+    try:
+        user = User.objects.get(email=email)
+        reset_record = PasswordResetCode.objects.filter(user=user, code=code).last()
+        
+        if reset_record:
+            user.set_password(new_password)
+            user.save()
+            reset_record.delete() # Invalidate code after use
+            
+            return Response({"message": "Password updated successfully!"}, status=200)
+        
+        return Response({"error": "Invalid code. Please try again."}, status=400)
+            
+    except User.DoesNotExist:
+        return Response({"error": "User not found."}, status=404)
