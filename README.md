@@ -26,7 +26,7 @@ This is the Django-based backend for the ManoVox communication app.
 ## 🛠 API Documentation (Accounts)
 
 ### 1. Register User
-- **URL:** `/accounts/register/`
+- **URL:** `/register_user/`
 - **Method:** `POST`
 - **Description:** Creates a new user in the database.
 - **Body:**
@@ -40,7 +40,7 @@ This is the Django-based backend for the ManoVox communication app.
     "age": "example_age"
   }
 ### 2. Delete account
-- **URL:** `/accounts/delete_account/`
+- **URL:** `/delete_account/`
 - **Method:** `DELETE`
 - **Description:** deletes a user from the database
 - **Security:** Requires Bearer Token authentication.
