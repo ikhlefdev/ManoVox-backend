@@ -1,13 +1,15 @@
 from django.template.loader import render_to_string
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model 
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from .serializers import UserRegistrationSerializer , SignWordSerializer , ASLLetterSerializer
-from .models import SignWord , ASLLetter , PasswordResetCode
+from .models import SignWord , ASLLetter , PasswordResetCode, EmailVerificationCode
 from rest_framework.decorators import api_view
 from django.core.mail import send_mail
-from django.contrib.auth import get_user_model
+from rest_framework.views import APIView
+from rest_framework import status
+from .models import User, EmailVerificationCode
 
 User = get_user_model()
 
@@ -55,6 +57,7 @@ class UserDeleteView(generics.DestroyAPIView):
         )
 class SignDictionaryView(generics.ListAPIView):
     serializer_class = SignWordSerializer
+    permission_classes = [AllowAny]
 
     def get_queryset(self):
         queryset = SignWord.objects.all()
@@ -79,6 +82,7 @@ class ASLLetterListView(generics.ListAPIView):
     
     # 2. Pass those letters through our translator so they become JSON
     serializer_class = ASLLetterSerializer
+    permission_classes = [AllowAny]
     
     
 @api_view(['POST'])
@@ -134,3 +138,90 @@ def verify_and_reset_password(request):
             
     except User.DoesNotExist:
         return Response({"error": "User not found."}, status=404)
+    
+
+
+@api_view(['POST'])
+def send_verification_code(request):
+    email = request.data.get('email')
+    
+    try:
+        user = User.objects.get(email=email)
+        
+        # If user is already active, no need to send a code
+        if user.is_active:
+            return Response({"message": "Account is already verified."}, status=400)
+
+        # Create and generate the code
+        verification_record = EmailVerificationCode.objects.create(user=user)
+        verification_record.generate_code()
+        
+        # Render the HTML template
+        html_content = render_to_string('email/verify_email.html', {'code': verification_record.code})
+        
+        # Send the email
+        send_mail(
+            subject="Verify your ManoVox Account",
+            message=f"Your verification code is: {verification_record.code}",
+            from_email=None,
+            recipient_list=[email],
+            html_message=html_content
+        )
+        
+        return Response({"message": "Verification code sent successfully!"}, status=200)
+        
+    except User.DoesNotExist:
+        # We still return 200 to prevent email enumeration (security best practice)
+        return Response({"message": "If that email exists, a code was sent."}, status=200)
+
+
+@api_view(['POST'])
+def verify_email(request):
+    email = request.data.get('email')
+    code = request.data.get('code')
+    
+    if not email or not code:
+        return Response({"error": "Email and code are required."}, status=400)
+        
+    try:
+        user = User.objects.get(email=email)
+        
+        # Find the latest code for this user
+        verification_record = EmailVerificationCode.objects.filter(user=user, code=code).last()
+        
+        if verification_record:
+            # Activate the user!
+            user.is_active = True
+            user.save()
+            
+            # Delete the code so it can't be reused
+            verification_record.delete()
+            
+            return Response({"message": "Email verified successfully!"}, status=200)
+        else:
+            return Response({"error": "Invalid code."}, status=400)
+            
+    except User.DoesNotExist:
+        return Response({"error": "User not found."}, status=404)
+    
+class VerifyEmailView(APIView):
+    def post(self, request):
+        email = request.data.get('email')
+        code = request.data.get('code')
+
+        try:
+            # Find the user and the code record
+            user = User.objects.get(email=email)
+            verification = EmailVerificationCode.objects.get(user=user, code=code)
+
+            # 1. Activate the user
+            user.is_active = True
+            user.save()
+
+            # 2. Delete the code so it can't be used again
+            verification.delete()
+
+            return Response({"message": "Account activated successfully!"}, status=status.HTTP_200_OK)
+
+        except (User.DoesNotExist, EmailVerificationCode.DoesNotExist):
+            return Response({"error": "Invalid email or verification code."}, status=status.HTTP_400_BAD_REQUEST)

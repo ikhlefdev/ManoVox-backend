@@ -9,9 +9,10 @@ https://docs.djangoproject.com/en/6.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
+from dotenv import load_dotenv
 import dj_database_url
 import os
-from dotenv import load_dotenv
+
 
 load_dotenv() # This is a security meseaure for my email address to be the reset account email sender
 from pathlib import Path
@@ -46,9 +47,11 @@ INSTALLED_APPS = [
     'cloudinary',
     'rest_framework',
     'django.contrib.staticfiles',
+    'accounts.apps.AccountsConfig',
     'rest_framework_simplejwt',
-    'accounts',
+    #'accounts',
     'corsheaders',
+    'django_extensions',
     #I added those two installed apps so Django can use them --- For user authentication (login, registration, forgot password), the fastest way to deliver is using a library called Djoser. It provides all the REST API endpoints you need out of the box.
     'rest_framework.authtoken',
     'djoser',
@@ -99,6 +102,7 @@ WSGI_APPLICATION = 'core.wsgi.application'
 
 DATABASES = {
     'default': dj_database_url.config(
+        default=os.getenv('DATABASE_URL'),
         conn_max_age=0,
         conn_health_checks=True,
     )
@@ -147,7 +151,10 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
         'rest_framework.authentication.BasicAuthentication', # Adds Username/Password support
         'rest_framework.authentication.SessionAuthentication', # Adds Browser support
-    )
+    ),
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny',
+    ],
 }
 
 
@@ -156,12 +163,13 @@ REST_FRAMEWORK = {
 # IMPORTANT: Never hardcode passwords here. Always use the .env file!
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = os.getenv('EMAIL_USER')
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_PASS')
-AUTH_USER_MODEL = 'accounts.User'
+EMAIL_HOST_USER = os.getenv('EMAIL_USER')  # Your Gmail address
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_PASS')  # Your 16-character App Password
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 # Djoser settings for password reset
 DJOSER = {
     'SEND_CONFIRMATION_EMAIL': False,
@@ -213,3 +221,5 @@ STORAGES = {
         "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
     },
 }
+
+AUTH_USER_MODEL = 'accounts.User'
