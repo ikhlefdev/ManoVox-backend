@@ -4,9 +4,15 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth import get_user_model
 from cloudinary_storage.storage import VideoMediaCloudinaryStorage
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.conf import settings
 
 class User(AbstractUser):
     email = models.EmailField(unique=True)
+    is_active = models.BooleanField(default=False)
     age = models.PositiveIntegerField(null=True, blank=True)
     role = models.CharField(max_length=20, choices=[('user', 'User'), ('admin', 'Administration')], default='user')
     organization_name = models.CharField(max_length=255, null=True, blank=True)
@@ -36,7 +42,6 @@ class ASLLetter(models.Model):
         return f"Letter: {self.letter.upper()}"
     
     
-User = get_user_model()
 
 class PasswordResetCode(models.Model):
     # This creates a relationship. If a User is deleted, their reset codes are also deleted automatically (CASCADE).
@@ -54,3 +59,15 @@ class PasswordResetCode(models.Model):
         
         # Save this new code into the PostgreSQL database.
         self.save()
+        
+class EmailVerificationCode(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    code = models.CharField(max_length=6)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def generate_code(self):
+        # Generates a random 6-digit string
+        from django.utils.crypto import get_random_string
+        self.code = get_random_string(length=6, allowed_chars='0123456789')
+        self.save()
+        

@@ -18,6 +18,7 @@ This is the Django-based backend for the ManoVox communication app.
 - **Cloud Database (Neon PostgreSQL):** Integrated, shared remote database for real-time syncing.
 - **Cloud Media (Cloudinary):** Seamless cloud hosting for scalable image and video serving.
 - **User Authentication:** Complete registration, login, and logout flow using Djoser.
+- **Email Verification:** Automated OTP confirmation code sent to users upon registration to activate accounts.
 - **Password Recovery:** Automated "Forgot Password" system via Gmail SMTP.
 - **Security:** Sensitive keys and credentials managed via `.env` variables.
 - **Deaf Hub:** Event feed allowing specific administration accounts to create, manage, and share events with regular users.
@@ -93,6 +94,7 @@ This is the Django-based backend for the ManoVox communication app.
 - **URL:** `/accounts/sign_dictionary/`
 - **Method:** `GET`
 - **Description:** Retrieves a list of ASL sign words. Supports searching and category filtering via query parameters.
+- **Security:** Public (`AllowAny`), no token required for frontend integration.
 - **Query Parameters:** 
   - `?search=<word>` (optional)
   - `?category=<category>` (optional)
@@ -101,6 +103,32 @@ This is the Django-based backend for the ManoVox communication app.
 - **URL:** `/accounts/asl-letters/`
 - **Method:** `GET`
 - **Description:** Retrieves all letters of the ASL alphabet along with their corresponding cloud-hosted image and video URLs.
+- **Security:** Public (`AllowAny`), no token required for frontend integration.
+
+### 8. Email Verification Flow
+
+**Step 1: Request Verification Code**
+- **URL:** `/accounts/custom-verify/send-code/`
+- **Method:** `POST`
+- **Description:** Generates a 6-digit OTP and sends it to the user's email in an HTML template.
+- **Body:**
+  ```json
+  {
+    "email": "user@mail.com"
+  }
+  ```
+
+**Step 2: Verify Code and Activate Account**
+- **URL:** `/accounts/custom-verify/verify-email/`
+- **Method:** `POST`
+- **Description:** Verifies the 6-digit code. If valid, the user's account is activated (`is_active=True`) and the code is deleted.
+- **Body:**
+  ```json
+  {
+    "email": "user@mail.com",
+    "code": "123456"
+  }
+  ```
 
 ---
 
