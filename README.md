@@ -21,7 +21,9 @@ This is the Django-based backend for the ManoVox communication app.
 - **Email Verification:** Automated OTP confirmation code sent to users upon registration to activate accounts.
 - **Password Recovery:** Automated "Forgot Password" system via Gmail SMTP.
 - **Security:** Sensitive keys and credentials managed via `.env` variables.
-- **Deaf Hub:** Event feed allowing specific administration accounts to create, manage, and share events with regular users.
+- **Deaf Hub Events:** Event feed allowing specific administration accounts to create, manage, and share events with regular users.
+- **AI Speech-to-Sign Translation:** Native python concatenation engine (using `moviepy`) that breaks down complex speech strings into matching `.mp4` video clips and seamlessly layers them into Cloudinary. 
+- **Sign Language History:** Secure database tracking that stores past translations natively per user with specific flags to filter favorite conversations.
 
 
 ## 🛠 API Documentation (Accounts)
@@ -145,3 +147,36 @@ This is the Django-based backend for the ManoVox communication app.
 - **Headers:** `Authorization: Token <your_token_string>`
 - **Description:** Creates a new event. The user MUST be registered with `"role": "admin"`.
 - **Payload fields:** `title`, `description`, `date`, `location`, `image` (optional), `video` (optional).
+
+---
+
+## 🤖 API Documentation (AI Translation & History)
+
+### 1. Translate Speech-to-Sign
+- **URL:** `/api/deaf-hub/translate/`
+- **Method:** `POST`
+- **Headers:** `Authorization: Token <your_token_string>`
+- **Description:** Takes a text string (generated from the device's Speech-to-Text module), parses it, concatenates a sequence of video files on the server using MoviePy natively, and returns the final MP4 Cloudinary URL.
+- **Body Requirement:**
+  - `save_to_history: false`: Instantly generates a temporary video and skips database storage to prevent permanent Cloudinary storage limits.
+  - `save_to_history: true`: Saves the generated video permanently and links it to the user's permanent database history.
+  ```json
+  {
+    "text": "hello my friend",
+    "save_to_history": false
+  }
+  ```
+
+### 2. Get Translation History
+- **URL:** `/api/deaf-hub/translation-history/`
+- **Method:** `GET`
+- **Headers:** `Authorization: Token <your_token_string>`
+- **Description:** Retrieves all previous translations the user generated with `save_to_history: true`. 
+- **Query Parameters:**
+  -  `?favorite=true` (Adding this to the end of the URL will filter the array to exclusively show favorited videos).
+
+### 3. Toggle Favorite Conversation
+- **URL:** `/api/deaf-hub/translation-history/<video_id>/favorite/`
+- **Method:** `POST`
+- **Headers:** `Authorization: Token <your_token_string>`
+- **Description:** Toggles the `is_favorite` boolean variable for a saved history video. If it is favorited, hitting this endpoint unfavorites it.

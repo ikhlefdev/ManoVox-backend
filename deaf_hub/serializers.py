@@ -9,3 +9,11 @@ class EventSerializer(serializers.ModelSerializer):
         model = Event
         fields = ['id', 'title', 'description', 'image', 'video', 'date', 'location', 'author', 'author_info', 'created_at']
         read_only_fields = ['author', 'created_at']
+
+from .models import SignTranslationHistory
+
+class SignTranslationHistorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SignTranslationHistory
+        fields = ['id', 'user', 'original_text', 'video_url', 'is_favorite', 'created_at']
+        read_only_fields = ['user', 'created_at']

@@ -17,3 +17,16 @@ class Event(models.Model):
 
     def __str__(self):
         return self.title
+
+class SignTranslationHistory(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='translation_history')
+    original_text = models.CharField(max_length=1000)
+    video_url = models.URLField(max_length=500)
+    is_favorite = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.user.username} - {self.original_text[:20]}"
