@@ -26,6 +26,15 @@ class SignWordSerializer(serializers.ModelSerializer):
 # This translates our ASLLetter database model into JSON data 
 # so the frontend (React/Flutter/etc.) can actually read it.
 class ASLLetterSerializer(serializers.ModelSerializer):
+    # 1. We tell Django: "Let me handle the image field manually"
+    image = serializers.SerializerMethodField()
+
     class Meta:
-        model = ASLLetter # The database table we are pulling from
-        fields = ['id', 'letter', 'image', 'video'] # The exact columns we want to send to the app
+        model = ASLLetter
+        fields = ['id', 'letter', 'image', 'video']
+
+    # 2. We construct the perfect, clean URL for the frontend
+    def get_image(self, obj):
+        if obj.image:
+            return f"https://res.cloudinary.com/dmjcq9wdh/image/upload/Sign_Language_{obj.letter.upper()}.jpg"
+        return None
