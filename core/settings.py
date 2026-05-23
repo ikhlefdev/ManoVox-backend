@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'djoser',
     'deaf_hub',
+    'speech_to_sign_translation',
 ]
 
 MIDDLEWARE = [
