@@ -11,6 +11,7 @@ This is the Django-based backend for the ManoVox communication app.
 - **Auth:** Djoser & Token Authentication (DRF tokens)
 - **Email:** Gmail SMTP Integration
 - **AI Transcription:** OpenAI Whisper (Speech-to-Text)
+- **AI Inference:** TensorFlow Lite ASL classifier with `asl_50words.tflite` and `accounts/data/label_map.json` for landmark-based prediction
 - **Video Processing:** FFmpeg (Dynamic Video Concatenation)
 
 ## Features Implemented
@@ -25,6 +26,7 @@ This is the Django-based backend for the ManoVox communication app.
 - **Security:** Sensitive keys and credentials managed via `.env` variables.
 - **Deaf Hub:** Event feed allowing specific administration accounts to create, manage, and share events with regular users.
 - **Speech-to-Sign Engine:** Transcribes audio via Whisper, normalizes text, maps to individual ASL video signs/letters, stitches them into a cohesive video using FFmpeg, and hosts on Cloudinary.
+- **AI-Based ASL Prediction:** Integrates a TensorFlow Lite ASL classifier (`asl_50words.tflite`) for landmark-based sign recognition using MediaPipe Holistic input. Prediction requests are exposed through a dedicated endpoint with real-time label and confidence outputs.
 - **Translation History:** Allows authenticated users to optionally save their generated signs, view past translations, toggle favorites, and securely delete videos from both the database and cloud storage.
 
 
@@ -109,7 +111,21 @@ This is the Django-based backend for the ManoVox communication app.
 - **Description:** Retrieves all letters of the ASL alphabet along with their corresponding cloud-hosted image and video URLs.
 - **Security:** Public (`AllowAny`), no token required for frontend integration.
 
-### 8. Email Verification Flow
+### 8. ASL Prediction (AI Model)
+- **URL:** `/accounts/predict/`
+- **Method:** `POST`
+- **Description:** Accepts a MediaPipe Holistic landmark sequence, preprocesses it using the same normalization and motion encoding pipeline as the training code, then infers the corresponding ASL sign label with a TensorFlow Lite model.
+- **Body:**
+  ```json
+  {
+    "sequence": [[x, y, z, ...], [x, y, z, ...], ...]
+  }
+  ```
+  - Expected shape: `(64, 342)` before reshaping to `(64, 114, 3)`.
+- **Response:** Returns the predicted ASL class label and confidence score.
+- **Security:** Public (`AllowAny`), no token required.
+
+### 9. Email Verification Flow
 
 **Step 1: Request Verification Code**
 - **URL:** `/accounts/custom-verify/send-code/`
