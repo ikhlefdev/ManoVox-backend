@@ -75,3 +75,60 @@ class ASLLetterListView(generics.ListAPIView):
     
     # 2. Pass those letters through our translator so they become JSON
     serializer_class = ASLLetterSerializer
+
+from rest_framework.views import APIView
+import numpy as np
+from .preprocess import preprocess
+from .inference import TFLiteASLModel
+
+class PredictASLView(APIView):
+    """
+    Classifies a sequence of 64 frames of MediaPipe Holistic landmarks (114 landmarks * 3 coordinates).
+    Expects request format: {"sequence": [[x, y, z, ...], [x, y, z, ...], ...]} of shape (64, 342)
+    """
+    permission_classes = [AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        sequence_data = request.data.get('sequence')
+        
+        if not sequence_data:
+            return Response(
+                {"error": "Missing 'sequence' field in request data."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+        try:
+            # Convert to numpy array
+            seq = np.array(sequence_data, dtype=np.float32)
+            
+            # Check shape
+            if seq.shape != (64, 342):
+                return Response(
+                    {"error": f"Invalid sequence shape: expected (64, 342) but got {seq.shape}."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+                
+            # Reshape sequence to match dominant_hand_normalize expectations (64, 114, 3)
+            seq_reshaped = seq.reshape(64, 114, 3)
+            
+            # Preprocess the landmarks using the exact training code
+            processed = preprocess(seq_reshaped)  # (64, 1026)
+            
+            # Load the model and predict
+            predicted_class, confidence = TFLiteASLModel.get_instance().predict(processed)
+            
+            return Response({
+                "class": predicted_class,
+                "confidence": round(confidence, 4)
+            }, status=status.HTTP_200_OK)
+            
+        except ValueError as ve:
+            return Response(
+                {"error": f"Value error during processing: {str(ve)}"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        except Exception as e:
+            return Response(
+                {"error": f"Failed to perform prediction: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

@@ -8,4 +8,5 @@ urlpatterns = [
     path('sign_dictionary/', views.SignDictionaryView.as_view(), name='sign_dictionary'),
     # When the app requests /accounts/asl-letters/, trigger the ASLLetterListView
     path('asl-letters/', ASLLetterListView.as_view(), name='asl-letters'),
+    path('predict/', views.PredictASLView.as_view(), name='predict'),
 ]
