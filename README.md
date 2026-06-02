@@ -118,14 +118,26 @@ This is the Django-based backend for the ManoVox communication app.
 - **Body:**
   ```json
   {
-    "sequence": [[x, y, z, ...], [x, y, z, ...], ...]
+    "sequence": [[x, y, z, ...], [x, y, z, ...], ...],
+    "save_to_history": "true"  # optional
   }
   ```
   - Expected shape: `(64, 342)` before reshaping to `(64, 114, 3)`.
-- **Response:** Returns the predicted ASL class label and confidence score.
+- **Response:** Returns the predicted ASL class label, confidence score, and optional history ID when saved.
 - **Security:** Public (`AllowAny`), no token required.
 
-### 9. Email Verification Flow
+### 9. ASL Prediction History
+- **URL:** `/accounts/sign-prediction-history/`
+- **Method:** `GET`
+- **Description:** Retrieves the authenticated user's saved sign-to-text prediction history entries.
+- **Security:** Requires Token authentication.
+
+- **URL:** `/accounts/sign-prediction-history/<int:pk>/`
+- **Method:** `DELETE`
+- **Description:** Deletes the authenticated user's saved sign-to-text prediction history entry.
+- **Security:** Requires Token authentication.
+
+### 10. Email Verification Flow
 
 **Step 1: Request Verification Code**
 - **URL:** `/accounts/custom-verify/send-code/`
@@ -176,18 +188,70 @@ This is the Django-based backend for the ManoVox communication app.
   - `audio`: The uploaded audio file (e.g., .mp3, .wav).
   - `save_to_history`: `"true"` or `"false"` (Determines if the video is saved permanently to the user's history or overwritten in a temporary slot).
 
-### 2. Get Translation History
+### 2. Get Text-to-Sign Translation History
 - **URL:** `/history-list/`
 - **Method:** `GET`
-- **Description:** Retrieves a list of the user's securely saved translations (text, video URL, date, and favorite status).
+- **Description:** Retrieves a list of the user's securely saved text-to-sign translations (text, video URL, date, and favorite status).
 - **Security:** Requires Token authentication (filters by the logged-in user).
 
-### 3. Toggle Favorite Status
+### 3. Toggle Favorite Status (Text-to-Sign)
 - **URL:** `/favorite/<int:history_id>/`
 - **Method:** `POST`
-- **Description:** Toggles the `is_favorite` boolean (heart/unheart) for a specific saved translation.
+- **Description:** Toggles the `is_favorite` boolean (heart/unheart) for a specific saved text-to-sign translation.
 
-### 4. Delete Saved Translation
+### 4. Delete Saved Text-to-Sign Translation
 - **URL:** `/delete-history/<int:history_id>/`
 - **Method:** `DELETE` (or `POST`)
 - **Description:** Deletes the translation history record from the database and permanently removes the associated video file from Cloudinary storage to free up space.
+
+---
+
+## 👁️ API Documentation (Sign-to-Text Prediction & History)
+
+### 1. ASL Prediction (AI Model)
+- **URL:** `/accounts/predict/`
+- **Method:** `POST`
+- **Description:** Accepts a MediaPipe Holistic landmark sequence, preprocesses it using the same normalization and motion encoding pipeline as the training code, then infers the corresponding ASL sign label with a TensorFlow Lite model. Optionally accepts a video file of the sign being predicted for history storage.
+- **Body:**
+  ```json
+  {
+    "sequence": [[x, y, z, ...], [x, y, z, ...], ...],
+    "save_to_history": "true",  # optional
+    "video": <binary video file>  # optional, sent as multipart/form-data
+  }
+  ```
+  - Expected sequence shape: `(64, 342)` before reshaping to `(64, 114, 3)`.
+  - Video file (if provided): MP4, MOV, or other standard video formats. Uploaded to Cloudinary `manovox_sign_predictions` folder.
+- **Response:** Returns the predicted ASL class label, confidence score, optional video URL, and optional history ID when saved.
+  ```json
+  {
+    "class": "hello",
+    "confidence": 0.95,
+    "saved_to_history": true,
+    "video_url": "https://res.cloudinary.com/.../v1234/sample.mp4",
+    "history_id": 42
+  }
+  ```
+- **Security:** Public (`AllowAny`), no token required.
+
+### 2. Get Sign-to-Text Prediction History
+- **URL:** `/accounts/sign-prediction-history/`
+- **Method:** `GET`
+- **Description:** Retrieves the authenticated user's saved sign-to-text prediction history entries (predicted text, confidence, video URL if available, and timestamp).
+- **Response:** List of history entries sorted by most recent first.
+- **Security:** Requires Token authentication.
+
+### 3. Delete Sign-to-Text Prediction History Entry
+- **URL:** `/accounts/sign-prediction-history/<int:pk>/`
+- **Method:** `DELETE`
+- **Description:** Deletes a specific sign-to-text prediction from the authenticated user's history.
+- **Security:** Requires Token authentication.
+
+---
+
+### Key Difference: Separate History Systems
+
+- **Text-to-Sign History** (`TranslationHistory`): Stores transcribed audio text, generated video URLs, and favorite flags. Managed via `/history-list/`, `/favorite/`, and `/delete-history/`. The video is **generated** from text.
+- **Sign-to-Text History** (`SignPredictionHistory`): Stores predicted ASL labels, confidence scores, and optional input video URLs. Managed via `/accounts/sign-prediction-history/`. The video is the **input** being predicted from.
+
+Both systems track user predictions/translations separately with video storage and are scoped to authenticated users.

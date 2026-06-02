@@ -43,6 +43,17 @@ class ASLLetter(models.Model):
     
     
 
+class SignPredictionHistory(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    predicted_text = models.CharField(max_length=255)
+    confidence = models.FloatField()
+    video_url = models.URLField(max_length=500, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.predicted_text} ({self.confidence:.2f})"
+
+
 class PasswordResetCode(models.Model):
     # This creates a relationship. If a User is deleted, their reset codes are also deleted automatically (CASCADE).
     user = models.ForeignKey(User, on_delete=models.CASCADE)

@@ -1,7 +1,7 @@
 from rest_framework import serializers  # <--- THIS IS THE MISSING LINE
 from djoser.serializers import UserCreateSerializer as BaseUserCreateSerializer
 from django.contrib.auth import get_user_model
-from .models import SignWord, User # Make sure User is imported here too!
+from .models import SignWord, User, SignPredictionHistory # Make sure User is imported here too!
 from .models import ASLLetter
 
 User = get_user_model()
@@ -38,3 +38,9 @@ class ASLLetterSerializer(serializers.ModelSerializer):
         if obj.image:
             return f"https://res.cloudinary.com/dmjcq9wdh/image/upload/Sign_Language_{obj.letter.upper()}.jpg"
         return None
+
+
+class SignPredictionHistorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SignPredictionHistory
+        fields = ['id', 'predicted_text', 'confidence', 'video_url', 'created_at']

@@ -3,13 +3,12 @@ from django.contrib.auth import get_user_model
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from .serializers import UserRegistrationSerializer , SignWordSerializer , ASLLetterSerializer
-from .models import SignWord , ASLLetter , PasswordResetCode, EmailVerificationCode
+from .serializers import UserRegistrationSerializer, SignWordSerializer, ASLLetterSerializer, SignPredictionHistorySerializer
+from .models import SignWord, ASLLetter, PasswordResetCode, EmailVerificationCode, SignPredictionHistory
 from rest_framework.decorators import api_view
 from django.core.mail import send_mail
 from rest_framework.views import APIView
-from rest_framework import status
-from .models import User, EmailVerificationCode
+from .models import User
 
 User = get_user_model()
 
@@ -230,16 +229,20 @@ from rest_framework.views import APIView
 import numpy as np
 from .preprocess import preprocess
 from .inference import TFLiteASLModel
+import cloudinary.uploader
 
 class PredictASLView(APIView):
     """
     Classifies a sequence of 64 frames of MediaPipe Holistic landmarks (114 landmarks * 3 coordinates).
     Expects request format: {"sequence": [[x, y, z, ...], [x, y, z, ...], ...]} of shape (64, 342)
+    Optionally accepts a video file for storage with the prediction.
     """
     permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
         sequence_data = request.data.get('sequence')
+        save_to_history = request.data.get('save_to_history') in [True, 'true', 'True', '1']
+        video_file = request.FILES.get('video')
         
         if not sequence_data:
             return Response(
@@ -267,9 +270,39 @@ class PredictASLView(APIView):
             # Load the model and predict
             predicted_class, confidence = TFLiteASLModel.get_instance().predict(processed)
             
+            video_url = None
+            history_id = None
+            if save_to_history:
+                # Upload video to Cloudinary if provided
+                if video_file:
+                    try:
+                        upload_result = cloudinary.uploader.upload(
+                            video_file,
+                            resource_type='video',
+                            folder='manovox_sign_predictions'
+                        )
+                        video_url = upload_result.get('secure_url')
+                    except Exception as upload_error:
+                        return Response(
+                            {"error": f"Failed to upload video: {str(upload_error)}"},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                        )
+                
+                # Save to history
+                history_entry = SignPredictionHistory.objects.create(
+                    user=request.user if request.user.is_authenticated else None,
+                    predicted_text=predicted_class,
+                    confidence=confidence,
+                    video_url=video_url
+                )
+                history_id = history_entry.id
+            
             return Response({
                 "class": predicted_class,
-                "confidence": round(confidence, 4)
+                "confidence": round(confidence, 4),
+                "saved_to_history": save_to_history,
+                "video_url": video_url,
+                "history_id": history_id
             }, status=status.HTTP_200_OK)
             
         except ValueError as ve:
@@ -282,3 +315,19 @@ class PredictASLView(APIView):
                 {"error": f"Failed to perform prediction: {str(e)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+
+class SignPredictionHistoryListView(generics.ListAPIView):
+    serializer_class = SignPredictionHistorySerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return SignPredictionHistory.objects.filter(user=self.request.user).order_by('-created_at')
+
+
+class SignPredictionHistoryDeleteView(generics.DestroyAPIView):
+    serializer_class = SignPredictionHistorySerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return SignPredictionHistory.objects.filter(user=self.request.user)

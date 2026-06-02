@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import User, SignWord, ASLLetter
+from .models import User, SignWord, ASLLetter, SignPredictionHistory
 
 @admin.register(User)
 # 1. Setup Custom User Admin to handle the new 'age' field and "is_active"
@@ -29,6 +29,13 @@ class SignWordAdmin(admin.ModelAdmin):
     list_display = ('word', 'category', 'needs_ssl_bypass', 'video_url')
     list_filter = ('category', 'needs_ssl_bypass')
     search_fields = ('word',)
+
+# 3. Register ASLLetter at the bottom
+@admin.register(SignPredictionHistory)
+class SignPredictionHistoryAdmin(admin.ModelAdmin):
+    list_display = ('predicted_text', 'confidence', 'user', 'created_at')
+    list_filter = ('created_at', 'user')
+    search_fields = ('predicted_text',)
 
 # 3. Register ASLLetter at the bottom
 admin.site.register(ASLLetter)

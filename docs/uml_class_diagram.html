@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ManoVox — UML Class Diagram</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #ffffff;
+            color: #1a1a2e;
+            padding: 40px 50px;
+            line-height: 1.6;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 36px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #7209b7;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #7209b7;
+            margin-bottom: 6px;
+        }
+
+        .header p {
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        .diagram-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 40px;
+            overflow-x: auto;
+        }
+
+        .diagram-container .mermaid {
+            max-width: 100%;
+        }
+
+        h2 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #7209b7;
+            margin: 30px 0 16px 0;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e5e7eb;
+            page-break-before: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 24px;
+            font-size: 13px;
+        }
+
+        th {
+            background: #7209b7;
+            color: #ffffff;
+            padding: 10px 14px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 9px 14px;
+            border-bottom: 1px solid #e5e7eb;
+            vertical-align: top;
+        }
+
+        tr:nth-child(even) td {
+            background: #faf5ff;
+        }
+
+        td:first-child {
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        code {
+            background: #f3e8ff;
+            color: #7209b7;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-family: 'Consolas', 'Courier New', monospace;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 16px;
+            border-top: 2px solid #e5e7eb;
+            font-size: 12px;
+            color: #9ca3af;
+        }
+
+        @media print {
+            body { padding: 20px 30px; }
+            table { page-break-inside: avoid; }
+            h2 { page-break-before: auto; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>ManoVox — UML Class Diagram</h1>
+        <p>Sign Language Recognition &amp; Translation Platform — Data Model Architecture</p>
+    </div>
+
+    <div class="diagram-container">
+        <pre class="mermaid">
+classDiagram
+    direction TB
+
+    class AbstractUser {
+        &lt;&lt;Django Built-in&gt;&gt;
+        +String username
+        +String first_name
+        +String last_name
+        +String password
+        +Boolean is_staff
+        +Boolean is_superuser
+    }
+
+    class User {
+        +EmailField email
+        +BooleanField is_active
+        +PositiveIntegerField age
+        +CharField role
+        +CharField organization_name
+        +CharField phone_number
+        +USERNAME_FIELD = email
+    }
+
+    class SignWord {
+        +CharField word
+        +URLField video_url
+        +BooleanField needs_ssl_bypass
+        +CharField category
+        +__str__() String
+    }
+
+    class ASLLetter {
+        +CharField letter
+        +ImageField image
+        +FileField video
+        +__str__() String
+    }
+
+    class SignPredictionHistory {
+        +ForeignKey user
+        +CharField predicted_text
+        +FloatField confidence
+        +URLField video_url
+        +DateTimeField created_at
+        +__str__() String
+    }
+
+    class PasswordResetCode {
+        +ForeignKey user
+        +CharField code
+        +DateTimeField created_at
+        +generate_code() void
+    }
+
+    class EmailVerificationCode {
+        +ForeignKey user
+        +CharField code
+        +DateTimeField created_at
+        +generate_code() void
+    }
+
+    class TranslationHistory {
+        +ForeignKey user
+        +TextField original_text
+        +URLField video_url
+        +BooleanField is_favorite
+        +DateTimeField created_at
+        +__str__() String
+    }
+
+    class Event {
+        +CharField title
+        +TextField description
+        +ImageField image
+        +FileField video
+        +DateTimeField date
+        +CharField location
+        +ForeignKey author
+        +DateTimeField created_at
+    }
+
+    class TFLiteASLModel {
+        &lt;&lt;Singleton&gt;&gt;
+        -_instance TFLiteASLModel
+        -interpreter Interpreter
+        -label_map dict
+        +get_instance()$ TFLiteASLModel
+        +predict(seq) Tuple
+    }
+
+    class Preprocessor {
+        &lt;&lt;Module&gt;&gt;
+        +MAX_FRAMES = 64
+        +N_LM = 114
+        +INPUT_DIM = 1026
+        +dominant_hand_normalize(seq) ndarray
+        +add_motion(seq) ndarray
+        +preprocess(seq) ndarray
+    }
+
+    class SignEngine {
+        &lt;&lt;Module&gt;&gt;
+        +STOP_WORDS set
+        +NUMBERS dict
+        +normalize_text(text) list
+        +get_video_sequence(words) list
+        +concatenate_videos(paths) str
+        +text_to_sign(text) str
+    }
+
+    class WhisperTranscription {
+        &lt;&lt;External Library&gt;&gt;
+        +transcribe(audio_path) str
+    }
+
+    class SpeechToSignTranslator {
+        &lt;&lt;Service&gt;&gt;
+        +transcribe_audio(file_path) str
+        +generate_sign_video(text) str
+        +save_translation(history, video_url) void
+    }
+
+    AbstractUser <|-- User : inherits
+    User "1" --> "*" SignPredictionHistory : has many
+    User "1" --> "*" PasswordResetCode : has many
+    User "1" --> "*" EmailVerificationCode : has many
+    User "1" --> "*" TranslationHistory : has many
+    User "1" --> "*" Event : authors
+
+    TFLiteASLModel ..> Preprocessor : uses
+    SpeechToSignTranslator ..> WhisperTranscription : uses
+    SpeechToSignTranslator ..> SignEngine : delegates
+    SpeechToSignTranslator ..> TranslationHistory : saves
+    SignEngine ..> TranslationHistory : creates
+        </pre>
+    </div>
+
+    <h2>Relationships Summary</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Relationship</th>
+                <th>Type</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><code>User</code> → <code>SignPredictionHistory</code></td>
+                <td>One-to-Many</td>
+                <td>A user can have many sign language predictions saved</td>
+            </tr>
+            <tr>
+                <td><code>User</code> → <code>TranslationHistory</code></td>
+                <td>One-to-Many</td>
+                <td>A user can have many speech-to-sign translations saved</td>
+            </tr>
+            <tr>
+                <td><code>User</code> → <code>PasswordResetCode</code></td>
+                <td>One-to-Many</td>
+                <td>A user can request multiple password reset codes</td>
+            </tr>
+            <tr>
+                <td><code>User</code> → <code>EmailVerificationCode</code></td>
+                <td>One-to-Many</td>
+                <td>A user can have multiple email verification codes</td>
+            </tr>
+            <tr>
+                <td><code>User</code> → <code>Event</code></td>
+                <td>One-to-Many</td>
+                <td>An admin user can author multiple Deaf Hub events</td>
+            </tr>
+            <tr>
+                <td><code>PredictASLView</code> → <code>TFLiteASLModel</code></td>
+                <td>Dependency</td>
+                <td>View uses singleton model instance for inference</td>
+            </tr>
+            <tr>
+                <td><code>PredictASLView</code> → <code>Preprocessor</code></td>
+                <td>Dependency</td>
+                <td>View uses preprocessing pipeline before prediction</td>
+            </tr>
+            <tr>
+                <td><code>translate_audio</code> → <code>SignEngine</code></td>
+                <td>Dependency</td>
+                <td>View uses sign engine for video stitching and upload</td>
+            </tr>
+            <tr>
+                <td><code>SpeechToSignTranslator</code> → <code>WhisperTranscription</code></td>
+                <td>Dependency</td>
+                <td>Speech translation uses Whisper for audio transcription</td>
+            </tr>
+            <tr>
+                <td><code>SpeechToSignTranslator</code> → <code>TranslationHistory</code></td>
+                <td>Dependency</td>
+                <td>Speech translation saves translation results and video URLs to history</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>Design Patterns Used</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Pattern</th>
+                <th>Where</th>
+                <th>Purpose</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Singleton</strong></td>
+                <td><code>TFLiteASLModel</code></td>
+                <td>Load the TFLite model once into memory, reuse across all requests</td>
+            </tr>
+            <tr>
+                <td><strong>Signal (Observer)</strong></td>
+                <td><code>send_otp_on_signup</code></td>
+                <td>Automatically send verification email when a new user is created</td>
+            </tr>
+            <tr>
+                <td><strong>Strategy</strong></td>
+                <td><code>IsAdminUserOrReadOnly</code></td>
+                <td>Pluggable permission logic — admin can write, others read-only</td>
+            </tr>
+            <tr>
+                <td><strong>Template Method</strong></td>
+                <td>DRF Generic Views</td>
+                <td>Override hooks like <code>get_queryset()</code> and <code>perform_create()</code></td>
+            </tr>
+            <tr>
+                <td><strong>Facade</strong></td>
+                <td><code>text_to_sign()</code></td>
+                <td>Single entry point that hides text normalization, video stitching, and cloud upload</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>Key Classes Description</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Class</th>
+                <th>Layer</th>
+                <th>Responsibility</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><code>User</code></td>
+                <td>Model</td>
+                <td>Custom user model extending Django's AbstractUser with email as primary login field, role-based access (user/admin), and profile fields</td>
+            </tr>
+            <tr>
+                <td><code>SignPredictionHistory</code></td>
+                <td>Model</td>
+                <td>Stores sign-to-text AI predictions with confidence scores and optional video recordings</td>
+            </tr>
+            <tr>
+                <td><code>TranslationHistory</code></td>
+                <td>Model</td>
+                <td>Stores speech-to-sign translations with favorite toggle and Cloudinary video URLs</td>
+            </tr>
+            <tr>
+                <td><code>TFLiteASLModel</code></td>
+                <td>Service</td>
+                <td>Singleton wrapper around TensorFlow Lite interpreter for 50-word ASL classification</td>
+            </tr>
+            <tr>
+                <td><code>WhisperTranscription</code></td>
+                <td>External Service</td>
+                <td>Handles speech recognition for audio inputs in speech-to-sign translation</td>
+            </tr>
+            <tr>
+                <td><code>SpeechToSignTranslator</code></td>
+                <td>Service</td>
+                <td>Coordinates Whisper transcription, sign video generation, and translation history storage</td>
+            </tr>
+            <tr>
+                <td><code>Preprocessor</code></td>
+                <td>Service</td>
+                <td>Normalizes 114 MediaPipe landmarks with dominant hand detection and motion features (position + velocity + acceleration)</td>
+            </tr>
+            <tr>
+                <td><code>SignEngine</code></td>
+                <td>Service</td>
+                <td>Converts text to sign language video by mapping words to Cloudinary clips and stitching with FFmpeg</td>
+            </tr>
+            <tr>
+                <td><code>Event</code></td>
+                <td>Model</td>
+                <td>Deaf community events with Cloudinary media storage, admin-only creation</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="footer">
+        ManoVox Project — UML Class Diagram 
+    </div>
+
+</body>
+<script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({
+        startOnLoad: true,
+        theme: 'default',
+        securityLevel: 'loose'
+    });
+</script>
+</html>

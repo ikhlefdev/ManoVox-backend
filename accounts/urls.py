@@ -17,6 +17,8 @@ urlpatterns = [
     # When the app requests /accounts/asl-letters/, trigger the ASLLetterListView
     path('asl-letters/', ASLLetterListView.as_view(), name='asl-letters'),
     path('predict/', views.PredictASLView.as_view(), name='predict'),
+    path('sign-prediction-history/', views.SignPredictionHistoryListView.as_view(), name='sign_prediction_history'),
+    path('sign-prediction-history/<int:pk>/', views.SignPredictionHistoryDeleteView.as_view(), name='sign_prediction_history_delete'),
     
     path('api/custom-reset/send-code/', send_reset_code, name='send_code'),
     path('api/custom-reset/verify-code/', verify_and_reset_password, name='verify_code'),

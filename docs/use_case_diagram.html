@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ManoVox — Use Case Diagram</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #ffffff;
+            color: #1a1a2e;
+            padding: 40px 50px;
+            line-height: 1.6;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 36px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #4361ee;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #4361ee;
+            margin-bottom: 6px;
+        }
+
+        .header p {
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        .diagram-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 40px;
+            page-break-after: always;
+        }
+
+        .diagram-container .mermaid {
+            max-width: 100%;
+        }
+
+        h2 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #4361ee;
+            margin: 30px 0 16px 0;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a1a2e;
+            margin: 24px 0 10px 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-size: 13px;
+        }
+
+        th {
+            background: #4361ee;
+            color: #ffffff;
+            padding: 10px 14px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 9px 14px;
+            border-bottom: 1px solid #e5e7eb;
+            vertical-align: top;
+        }
+
+        tr:nth-child(even) td {
+            background: #f8f9ff;
+        }
+
+        td:first-child {
+            font-weight: 500;
+            color: #4361ee;
+            white-space: nowrap;
+            width: 140px;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 16px;
+            border-top: 2px solid #e5e7eb;
+            font-size: 12px;
+            color: #9ca3af;
+        }
+
+        @media print {
+            body { padding: 20px 30px; }
+            .diagram-container { page-break-after: always; }
+            h2 { page-break-before: auto; }
+            h3 { page-break-after: avoid; }
+            table { page-break-inside: avoid; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>ManoVox — Use Case Diagram</h1>
+        <p>Sign Language Recognition & Translation Platform</p>
+    </div>
+
+    <div class="diagram-container">
+        <pre class="mermaid">
+flowchart LR
+    Guest(("👤 Guest"))
+    AuthUser(("👤 Authenticated\nUser"))
+    Admin(("👤 Admin"))
+
+    subgraph AUTH ["🔐 Authentication & Account"]
+        UC1["Register Account"]
+        UC2["Verify Email via OTP"]
+        UC3["Login"]
+        UC4["Logout"]
+        UC5["Request Password Reset"]
+        UC6["Reset Password via OTP"]
+        UC7["Delete Account"]
+    end
+
+    subgraph SIGN2TEXT ["🤟 Sign → Text Recognition"]
+        UC8["Record Sign Video"]
+        UC9["Send Landmarks to AI"]
+        UC10["Get Predicted Word"]
+        UC11["Upload Video"]
+        UC12["Save Prediction to History"]
+    end
+
+    subgraph TEXT2SIGN ["🗣️ Speech → Sign Translation"]
+        UC13["Record / Upload Audio"]
+        UC14["Transcribe via Whisper"]
+        UC15["Generate Sign Video"]
+        UC16["View Sign Video"]
+        UC17["Save Translation to History"]
+    end
+
+    subgraph DICT ["📖 Sign Dictionary & ASL"]
+        UC18["Browse Dictionary"]
+        UC19["Search by Word"]
+        UC20["Filter by Category"]
+        UC21["View ASL Alphabet"]
+    end
+
+    subgraph HUB ["🏛️ Deaf Hub"]
+        UC24["Browse Events"]
+        UC25["Create Event"]
+        UC26["Edit / Delete Event"]
+    end
+
+    subgraph HISTORY ["📜 History Management"]
+        UC27["View Prediction History"]
+        UC28["Delete Prediction Item"]
+        UC29["View Translation History"]
+        UC30["Delete Translation Item"]
+        UC31["Toggle Favorite"]
+    end
+
+    Guest --> UC1
+    Guest --> UC3
+    Guest --> UC5
+    Guest --> UC8
+    Guest --> UC13
+    Guest --> UC18
+    Guest --> UC21
+    Guest --> UC24
+
+    AuthUser --> UC4
+    AuthUser --> UC7
+    AuthUser --> UC8
+    AuthUser --> UC12
+    AuthUser --> UC13
+    AuthUser --> UC17
+    AuthUser --> UC18
+    AuthUser --> UC24
+    AuthUser --> UC27
+    AuthUser --> UC28
+    AuthUser --> UC29
+    AuthUser --> UC30
+    AuthUser --> UC31
+
+    Admin --> UC25
+    Admin --> UC26
+
+    UC1 -. "«include»" .-> UC2
+    UC5 -. "«include»" .-> UC6
+    UC8 -. "«include»" .-> UC9
+    UC9 -. "«include»" .-> UC10
+    UC12 -. "«extend»" .-> UC11
+    UC13 -. "«include»" .-> UC14
+    UC14 -. "«include»" .-> UC15
+    UC15 -. "«include»" .-> UC16
+
+    Admin -.  "inherits" .-> AuthUser
+        </pre>
+    </div>
+
+    <h2>Use Case Descriptions</h2>
+
+    <h3>UC1 — Register Account</h3>
+    <table>
+        <tr><td>Actor</td><td>Guest</td></tr>
+        <tr><td>Precondition</td><td>User is not registered</td></tr>
+        <tr><td>Main Flow</td><td>1. User fills registration form (username, email, password, name, age, role) → 2. System creates inactive account → 3. System auto-sends OTP email (Django signal) → 4. User verifies email (UC2)</td></tr>
+        <tr><td>Postcondition</td><td>Account created, user is inactive until email verified</td></tr>
+    </table>
+
+    <h3>UC2 — Verify Email (OTP)</h3>
+    <table>
+        <tr><td>Actor</td><td>Guest (just registered)</td></tr>
+        <tr><td>Precondition</td><td>User received 6-digit OTP via email</td></tr>
+        <tr><td>Main Flow</td><td>1. User submits email + code → 2. System validates code → 3. System activates account (is_active = True) → 4. Code is deleted</td></tr>
+        <tr><td>Postcondition</td><td>User account is active and can log in</td></tr>
+    </table>
+
+    <h3>UC3 — Login</h3>
+    <table>
+        <tr><td>Actor</td><td>Guest</td></tr>
+        <tr><td>Precondition</td><td>User has an active, verified account</td></tr>
+        <tr><td>Main Flow</td><td>1. User sends email + password → 2. Djoser validates credentials → 3. System returns authentication token</td></tr>
+        <tr><td>Postcondition</td><td>User receives auth token for subsequent requests</td></tr>
+    </table>
+
+    <h3>UC5 — Request Password Reset</h3>
+    <table>
+        <tr><td>Actor</td><td>Guest</td></tr>
+        <tr><td>Precondition</td><td>User has a registered account</td></tr>
+        <tr><td>Main Flow</td><td>1. User submits email → 2. System generates 6-digit code → 3. System sends styled HTML email with OTP</td></tr>
+        <tr><td>Postcondition</td><td>Reset code saved in database, email sent to user</td></tr>
+    </table>
+
+    <h3>UC6 — Reset Password (OTP)</h3>
+    <table>
+        <tr><td>Actor</td><td>Guest</td></tr>
+        <tr><td>Precondition</td><td>User received reset code via email</td></tr>
+        <tr><td>Main Flow</td><td>1. User submits email + code + new password → 2. System verifies code → 3. System updates password → 4. Code is deleted</td></tr>
+        <tr><td>Postcondition</td><td>Password updated, reset code invalidated</td></tr>
+    </table>
+
+    <h3>UC8 — Sign Language Recognition (Sign → Text)</h3>
+    <table>
+        <tr><td>Actor</td><td>Guest / Authenticated User</td></tr>
+        <tr><td>Precondition</td><td>Device camera is available</td></tr>
+        <tr><td>Main Flow</td><td>1. User records 64 frames of sign language → 2. Flutter extracts 114 MediaPipe landmarks per frame → 3. Landmarks sent to /predict/ endpoint → 4. Server preprocesses (dominant hand normalization + motion features) → 5. TFLite model predicts word from 50-word vocabulary → 6. System returns predicted word + confidence</td></tr>
+        <tr><td>Postcondition</td><td>User sees the predicted sign word and confidence score</td></tr>
+        <tr><td>Extension</td><td>If save_to_history=true, video uploaded to Cloudinary and prediction saved to DB</td></tr>
+    </table>
+
+    <h3>UC13 — Speech-to-Sign Translation</h3>
+    <table>
+        <tr><td>Actor</td><td>Guest / Authenticated User</td></tr>
+        <tr><td>Precondition</td><td>User has audio to translate</td></tr>
+        <tr><td>Main Flow</td><td>1. User records/uploads audio → 2. Server transcribes with OpenAI Whisper → 3. Text normalized (stop words removed, stemmed, and mapped) → 4. System maps words to sign videos on Cloudinary → 5. FFmpeg concatenates videos → 6. Final video uploaded to Cloudinary → 7. User views sign language video</td></tr>
+        <tr><td>Postcondition</td><td>User receives video URL of sign language translation</td></tr>
+    </table>
+
+    <h3>UC14 — Transcribe Audio via Whisper</h3>
+    <table>
+        <tr><td>Actor</td><td>System</td></tr>
+        <tr><td>Precondition</td><td>Speech audio is uploaded</td></tr>
+        <tr><td>Main Flow</td><td>1. System sends audio file to Whisper → 2. Whisper returns transcribed text → 3. Text is returned to the speech translation pipeline</td></tr>
+        <tr><td>Postcondition</td><td>Audio is converted into normalized text for sign generation</td></tr>
+    </table>
+
+    <h3>UC15 — Generate Sign Video</h3>
+    <table>
+        <tr><td>Actor</td><td>System</td></tr>
+        <tr><td>Precondition</td><td>Transcribed text is available</td></tr>
+        <tr><td>Main Flow</td><td>1. System normalizes phrases → 2. It selects sign clip URLs from Cloudinary → 3. FFmpeg concatenates clips into one video → 4. Video is finalized for playback</td></tr>
+        <tr><td>Postcondition</td><td>A sign language video is created from the input speech</td></tr>
+    </table>
+
+    <h3>UC16 — View Sign Video</h3>
+    <table>
+        <tr><td>Actor</td><td>Guest / Authenticated User</td></tr>
+        <tr><td>Precondition</td><td>Sign video has been generated</td></tr>
+        <tr><td>Main Flow</td><td>1. System returns Cloudinary video URL → 2. Frontend plays the generated sign video</td></tr>
+        <tr><td>Postcondition</td><td>User watches the speech-to-sign translation</td></tr>
+    </table>
+
+    <h3>UC17 — Save Translation to History</h3>
+    <table>
+        <tr><td>Actor</td><td>Authenticated User</td></tr>
+        <tr><td>Precondition</td><td>User chooses to save the generated translation</td></tr>
+        <tr><td>Main Flow</td><td>1. User requests save → 2. System uploads the generated video to history folder → 3. TranslationHistory record is created with original text, video URL, and timestamp</td></tr>
+        <tr><td>Postcondition</td><td>Speech-to-sign translation is stored in user history</td></tr>
+    </table>
+
+    <h3>UC25 — Create Event (Admin Only)</h3>
+    <table>
+        <tr><td>Actor</td><td>Admin</td></tr>
+        <tr><td>Precondition</td><td>User is authenticated with role = 'admin'</td></tr>
+        <tr><td>Main Flow</td><td>1. Admin submits event data (title, description, image, video, date, location) → 2. Media uploaded to Cloudinary → 3. Event saved to database</td></tr>
+        <tr><td>Postcondition</td><td>Event is visible to all users in the Deaf Hub</td></tr>
+    </table>
+
+    <h3>UC27 — View Prediction History</h3>
+    <table>
+        <tr><td>Actor</td><td>Authenticated User</td></tr>
+        <tr><td>Precondition</td><td>User has saved sign recognition predictions</td></tr>
+        <tr><td>Main Flow</td><td>1. User requests history → 2. System returns SignPredictionHistory records → 3. User reviews past predictions</td></tr>
+        <tr><td>Postcondition</td><td>Past sign prediction entries are displayed</td></tr>
+    </table>
+
+    <h3>UC28 — Delete Prediction Item</h3>
+    <table>
+        <tr><td>Actor</td><td>Authenticated User</td></tr>
+        <tr><td>Precondition</td><td>User selects a saved prediction</td></tr>
+        <tr><td>Main Flow</td><td>1. User deletes history entry → 2. System removes that SignPredictionHistory record</td></tr>
+        <tr><td>Postcondition</td><td>Prediction entry is removed from history</td></tr>
+    </table>
+
+    <h3>UC29 — View Translation History</h3>
+    <table>
+        <tr><td>Actor</td><td>Authenticated User</td></tr>
+        <tr><td>Precondition</td><td>User has saved speech-to-sign translations</td></tr>
+        <tr><td>Main Flow</td><td>1. User requests translation history → 2. System returns TranslationHistory records → 3. User reviews saved videos and text</td></tr>
+        <tr><td>Postcondition</td><td>Past speech-to-sign translations are displayed</td></tr>
+    </table>
+
+    <h3>UC30 — Delete Translation Item</h3>
+    <table>
+        <tr><td>Actor</td><td>Authenticated User</td></tr>
+        <tr><td>Precondition</td><td>User selects a saved translation</td></tr>
+        <tr><td>Main Flow</td><td>1. User deletes translation entry → 2. System removes TranslationHistory record and associated Cloudinary video</td></tr>
+        <tr><td>Postcondition</td><td>Translation entry is removed from history</td></tr>
+    </table>
+
+    <h3>UC31 — Toggle Favorite</h3>
+    <table>
+        <tr><td>Actor</td><td>Authenticated User</td></tr>
+        <tr><td>Precondition</td><td>User has translation history items</td></tr>
+        <tr><td>Main Flow</td><td>1. User toggles favorite status → 2. System updates the TranslationHistory record's is_favorite flag</td></tr>
+        <tr><td>Postcondition</td><td>Translation item is marked as favorite or unmarked</td></tr>
+    </table>
+
+    <div class="footer">
+        ManoVox Project — Use Case Diagram 
+    </div>
+
+</body>
+<script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({
+        startOnLoad: true,
+        theme: 'default',
+        flowchart: { curve: 'basis', useMaxWidth: true },
+        securityLevel: 'loose'
+    });
+</script>
+</html>
